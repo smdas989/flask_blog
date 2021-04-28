@@ -1,3 +1,4 @@
+
 body {
   background: #fafafa;
   color: #333333;
@@ -77,4 +78,25 @@ a.article-title:hover {
 
 .account-heading {
   font-size: 2.5rem;
+}
+
+#example_filter{
+  float:right;
+  right:100px;
+}
+#example_paginate{
+  float:right;
+}
+label {
+  display: inline-flex;
+  margin-bottom: .5rem;
+  margin-top: .5rem;
+ 
+}
+.page-item.disabled .page-link {
+  color: #6c757d;
+  pointer-events: none;
+  cursor: auto;
+  background-color: #fff;
+  border-color: #dee2e6;
 }
