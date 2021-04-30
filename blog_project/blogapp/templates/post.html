@@ -13,8 +13,19 @@
           </div>
         {% endif %}
       </div>
+
       <h2 class="article-title">{{ post.title }}</h2>
       <p class="article-content">{{ post.content }}</p>
+      {% if current_user.is_authenticated %}
+      {% if current_user.has_liked_post(post) %}
+        <a href="{{ url_for('like_action', post_id=post.id, action='unlike') }}">Unlike</a>
+      {% else %}
+        <a href="{{ url_for('like_action', post_id=post.id, action='like') }}">Like</a>
+      {% endif %}
+      {{ post.likes.count() }} likes
+  {% else %}
+    {{ post.likes.count() }} likes
+  {% endif %}
     </div>
   </article>
   <!-- Modal -->
@@ -32,8 +43,13 @@
           <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
             <input class="btn btn-danger" type="submit" value="Delete">
           </form>
+         
         </div>
+        
       </div>
+     
     </div>
+
   </div>
+ 
 {% endblock content %}

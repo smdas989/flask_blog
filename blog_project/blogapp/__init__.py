@@ -5,10 +5,11 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
 import os
+# from flask_script import Manager
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a7314aa1b604963cd35ed968e6b0c00d'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:1234@localhost:5432/Flask_blog'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -23,8 +24,10 @@ app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
 app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
 mail = Mail(app)
+# manager = Manager(app)
+# manager.add_command('db', MigrateCommand)
 
 from blogapp import views
-from blogapp.models import *
+# from blogapp.models import *
 
-db.create_all()
+# db.create_all()
