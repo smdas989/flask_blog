@@ -2,16 +2,17 @@ from flask import flash, redirect, render_template, url_for, request
 from blogapp import app, db, bcrypt, mail
 from flask.views import View
 from flask.views import MethodView
-from .forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm,  RequestResetForm, ResetPasswordForm
-from blogapp.models import User, Post
+from .forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm,  RequestResetForm, ResetPasswordForm, CommentForm
+from blogapp.models import User, Post, Comment
 from flask_login import login_user, current_user, logout_user, login_required
 import secrets
 import os
 from PIL import Image
 from flask_paginate import Pagination, get_page_parameter
 from flask_mail import Message
-@app.route("/")
+from datetime import datetime
 
+@app.route("/")
 @app.route("/home")
 def home():
     # posts = Post.query.paginate(per_page=5, page=page_num, error_out=True)
@@ -105,10 +106,14 @@ def new_post():
         return redirect(url_for('home'))
     return render_template('create_post.html', title='New Post', form=form,  legend='New Post')
 
-@app.route("/post/<int:post_id>")
+@app.route("/post/<int:post_id>", methods=['GET','POST'])
 def post(post_id):
+    form = CommentForm()
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post)
+    comments = Comment.query.filter_by(post_id=post_id).all()
+    if len(comments) == 0:
+        comments=None
+    return render_template('post.html', title=post.title, post=post, comments=comments, form=form)
 
 @app.route("/post/<int:post_id>/update", methods=['GET','POST'])
 @login_required
@@ -120,6 +125,7 @@ def update_post(post_id):
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+        post.date_updated = datetime.now()
         db.session.commit()
         flash('Your post has been updated','success')
         return redirect(url_for('post',post_id=post.id))
@@ -204,3 +210,17 @@ def like_action(post_id, action):
         current_user.unlike_post(post)
         db.session.commit()
     return redirect(request.referrer)
+
+
+@app.route('/comment/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def comment(post_id=None):
+    post = Post.query.get_or_404(post_id)
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(body=form.content.data.strip(), post_id=post_id, user_id = current_user.id)
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('post', post_id=post.id))
+
+    return render_template("post.html", post=post, form=form)
