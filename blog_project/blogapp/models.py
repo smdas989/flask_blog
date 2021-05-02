@@ -8,15 +8,6 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-class Todo(db.Model):
-    sno = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(80), nullable=False)
-    desc = db.Column(db.String(120), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f'{self.sno} - {self.title}'
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
@@ -24,6 +15,38 @@ class User(db.Model, UserMixin):
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     password = db.Column(db.String(60), nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
+    liked = db.relationship(
+        'PostLike',
+        foreign_keys='PostLike.user_id',
+        backref='user', lazy='dynamic')
+
+    comment = db.relationship(
+        'Comment',
+        foreign_keys='Comment.user_id',
+        backref='user', lazy='dynamic')
+
+    def like_post(self, post):
+        if not self.has_liked_post(post):
+            like = PostLike(user_id=self.id, post_id=post.id)
+            db.session.add(like)
+
+    def unlike_post(self, post):
+        if self.has_liked_post(post):
+            PostLike.query.filter_by(
+                user_id=self.id,
+                post_id=post.id).delete()
+
+    def has_liked_post(self, post):
+        return PostLike.query.filter(
+            PostLike.user_id == self.id,
+            PostLike.post_id == post.id).count() > 0
+
+
+class PostLike(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+    
 
     def get_reset_token(self, expires_sec=1800):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
@@ -45,10 +68,28 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    likes = db.relationship('PostLike', backref='post', lazy='dynamic')
+    comments = db.relationship('Comment', backref='title', lazy='dynamic')
 
+    def get_comments(self):
+        return Comment.query.filter_by(post_id=post.id).order_by(Comment.timestamp.desc())
+
+
+    
     def __repr__(self):
         return f"User('{self.title}', '{self.date_posted}')"
 
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+    body = db.Column(db.Text)
+    
+    def __repr__(self):
+        return f"Comment('{self.body}')"
     
