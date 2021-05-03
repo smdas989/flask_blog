@@ -24,9 +24,13 @@
         <a href="{{ url_for('like_action', post_id=post.id, action='like') }}">Like</a>
       {% endif %}
       {{ post.likes.count() }} likes
+      {{ post.comments.count() }} comments
   {% else %}
-    {{ post.likes.count() }} likes
+    {{ post.likes.count() }}likes
+    {{ post.comments.count() }} comments
+
   {% endif %}
+  
 </div>
 </article>
 

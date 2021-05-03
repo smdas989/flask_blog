@@ -221,7 +221,6 @@ def comment(post_id=None):
         db.session.add(comment)
         db.session.commit()
         return redirect(url_for('post', post_id=post.id))
-
     return render_template("post.html", post=post, form=form)
 
 @app.route('/comment/<int:comment_id>/delete', methods=['GET', 'POST'])
