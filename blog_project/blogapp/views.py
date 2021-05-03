@@ -3,7 +3,7 @@ from blogapp import app, db, bcrypt, mail
 from flask.views import View
 from flask.views import MethodView
 from .forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm,  RequestResetForm, ResetPasswordForm, CommentForm
-from blogapp.models import User, Post, Comment
+from blogapp.models import User, Post, Comment, PostLike
 from flask_login import login_user, current_user, logout_user, login_required
 import secrets
 import os
@@ -11,13 +11,14 @@ from PIL import Image
 from flask_paginate import Pagination, get_page_parameter
 from flask_mail import Message
 from datetime import datetime
+from sqlalchemy import func
 
 @app.route("/")
 @app.route("/home")
 def home():
-    # posts = Post.query.paginate(per_page=5, page=page_num, error_out=True)
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+    # posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+    posts = Post.query.outerjoin(PostLike).group_by(Post.id).order_by(func.count().desc(), Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('home.html', posts=posts)
 
 
@@ -222,5 +223,13 @@ def comment(post_id=None):
         db.session.add(comment)
         db.session.commit()
         return redirect(url_for('post', post_id=post.id))
-
     return render_template("post.html", post=post, form=form)
+
+@app.route('/comment/<int:comment_id>/delete', methods=['GET', 'POST'])
+@login_required
+def comment_delete(comment_id=None, post_id=None):
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Your comment has been deleted!', 'success')
+    return redirect(request.referrer)
