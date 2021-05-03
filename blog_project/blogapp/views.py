@@ -15,7 +15,6 @@ from datetime import datetime
 @app.route("/")
 @app.route("/home")
 def home():
-    # posts = Post.query.paginate(per_page=5, page=page_num, error_out=True)
     page = request.args.get('page', 1, type=int)
     posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('home.html', posts=posts)
@@ -224,3 +223,12 @@ def comment(post_id=None):
         return redirect(url_for('post', post_id=post.id))
 
     return render_template("post.html", post=post, form=form)
+
+@app.route('/comment/<int:comment_id>/delete', methods=['GET', 'POST'])
+@login_required
+def comment_delete(comment_id=None, post_id=None):
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Your comment has been deleted!', 'success')
+    return redirect(request.referrer)

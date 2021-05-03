@@ -72,6 +72,14 @@
     <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
     <div class="media-body">
       <div class="article-metadata">
+        {% if post.author == current_user %}
+        <div>
+          <form action="{{ url_for('comment_delete', comment_id=comment.id) }}" method="POST">
+            
+            <a onclick="if (!confirm('Are you sure you want to delete?')) { return false }" ><button  type="submit" class="btn btn-danger btn-sm m-1">Delete</button></a>
+          </form>
+        </div>
+      {% endif %}
         <a class="mr-2" href="#">{{ post.author.username }}</a>
       </div>
       <p class="article-content">{{ comment.body }}</p>
@@ -98,13 +106,9 @@
           <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST">
             <input class="btn btn-danger" type="submit" value="Delete">
           </form>
-         
         </div>
-        
       </div>
-     
     </div>
-
   </div>
  
 {% endblock content %}
