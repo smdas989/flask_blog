@@ -3,7 +3,7 @@ from blogapp import app, db, bcrypt, mail
 from flask.views import View
 from flask.views import MethodView
 from .forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm,  RequestResetForm, ResetPasswordForm, CommentForm
-from blogapp.models import User, Post, Comment
+from blogapp.models import User, Post, Comment, PostLike
 from flask_login import login_user, current_user, logout_user, login_required
 import secrets
 import os
@@ -11,12 +11,14 @@ from PIL import Image
 from flask_paginate import Pagination, get_page_parameter
 from flask_mail import Message
 from datetime import datetime
+from sqlalchemy import func
 
 @app.route("/")
 @app.route("/home")
 def home():
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+    # posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+    posts = Post.query.outerjoin(PostLike).group_by(Post.id).order_by(func.count().desc(), Post.date_posted.desc()).paginate(page=page, per_page=5)
     return render_template('home.html', posts=posts)
 
 
