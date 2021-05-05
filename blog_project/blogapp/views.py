@@ -17,9 +17,19 @@ from sqlalchemy import func
 @app.route("/home")
 def home():
     page = request.args.get('page', 1, type=int)
-    # posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
-    posts = Post.query.outerjoin(PostLike).group_by(Post.id).order_by(func.count().desc(), Post.date_posted.desc()).paginate(page=page, per_page=5)
-    return render_template('home.html', posts=posts)
+    posts = posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+
+    search_post = request.args.get('search_post')
+    if search_post:
+        search_post = search_post.strip()
+        posts = Post.query.filter(Post.title.ilike('%' + search_post + '%')).paginate(page, per_page=5)
+    
+    sort_by = request.args.get('sort_by')
+    if sort_by == 'oldest':
+        posts = Post.query.order_by(Post.date_posted).paginate(page=page, per_page=5)
+    elif sort_by == 'most_liked':
+        posts = Post.query.outerjoin(PostLike).group_by(Post.id).order_by(func.count().desc(), Post.date_posted.desc()).paginate(page=page, per_page=5)
+    return render_template('home.html', posts=posts, sort_by=sort_by)
 
 
 @app.route("/about")
