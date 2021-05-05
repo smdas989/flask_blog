@@ -244,9 +244,4 @@ def comment_delete(comment_id=None, post_id=None):
     flash('Your comment has been deleted!', 'success')
     return redirect(request.referrer)
 
-@app.route('/search', methods=['GET'])
-def search_post():
-    post_title = request.args.get('post').strip()
-    page = request.args.get('page', 1, type=int)
-    posts = Post.query.filter(Post.title.ilike('%' + post_title + '%')).paginate(page, per_page=5)
-    return render_template("home.html", posts=posts)
+
