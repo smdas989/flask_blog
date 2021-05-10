@@ -30,9 +30,11 @@
               <a class="nav-item nav-link" href="/about">About</a>
               <!-- Search box -->
               <form class="search" method="GET" action="{{ url_for('home') }}" style="margin:auto;max-width:300px">
-                <input type="text" placeholder="Search.." name="search_post">
-                <button type="submit"><i class="fa fa-search"></i></button>
+                <input type="text" placeholder="Search posts" name="search_post", value="{{search_post}}">
+                
               </form>
+
+             
               <!-- Search box ends -->
 
               <!-- Sorting -->
@@ -42,9 +44,9 @@
                  Sort by
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <a class="dropdown-item" href="{{ url_for('home', sort_by='newest' ) }}">Newest</a>
-                  <a class="dropdown-item" href="{{ url_for('home', sort_by='oldest') }}">Oldest</a>
-                  <a class="dropdown-item" href="{{ url_for('home', sort_by='most_liked') }}">Most liked</a>
+                  <a class="dropdown-item" href="{{ url_for('home', sort_by='newest', search_post=search_post ) }}">Newest</a>
+                  <a class="dropdown-item" href="{{ url_for('home', sort_by='oldest', search_post=search_post) }}">Oldest</a>
+                  <a class="dropdown-item" href="{{ url_for('home', sort_by='most_liked', search_post=search_post) }}">Most liked</a>
                 </div>
               </div>
               <!-- Sorting ends -->
