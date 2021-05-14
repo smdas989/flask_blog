@@ -27,7 +27,7 @@
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
               <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
-              <a class="nav-item nav-link" href="/about">About</a>
+              <a class="nav-item nav-link" href="{{ url_for('feed')}}">Feed</a>
               <!-- Search box -->
               <form class="search" method="GET" action="{{ url_for('home') }}" style="margin:auto;max-width:300px">
                 <input type="text" placeholder="Search posts" name="search_post", value="{{search_post}}">
