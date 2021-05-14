@@ -20,7 +20,8 @@ def home():
     posts = posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
 
     search_post = request.args.get('search_post')
-    search_post = search_post.strip()
+    if search_post:
+        search_post = search_post.strip()
 
     sort_by = request.args.get('sort_by')
     
@@ -260,3 +261,65 @@ def comment_delete(comment_id=None, post_id=None):
     return redirect(request.referrer)
 
 
+@app.route('/profile/<int:user_id>', methods=['GET'])
+@login_required
+def user_profile(user_id=None):
+    user = User.query.get_or_404(user_id)
+    return render_template("profile.html", user=user)
+
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User %s not found.' % username)
+        return redirect(url_for('home'))
+    if user == current_user:
+        flash('You can\'t follow yourself!')
+        return redirect(url_for('user_profile', user_id=user.id))
+    u = current_user.follow(user)
+    if u is None:
+        flash('Cannot follow ' + username + '.')
+        return redirect(url_for('user', user_id=user.id))
+    db.session.add(u)
+    db.session.commit()
+    flash('You are now following ' + username + '!',  'success')
+    return redirect(url_for('user_profile', user_id=user.id))
+
+@app.route('/unfollow/<username>')
+@login_required
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User %s not found.' % username)
+        return redirect(url_for('home'))
+    if user == current_user:
+        flash('You can\'t unfollow yourself!')
+        return redirect(url_for('user_profile', user_id=user.id))
+    u = current_user.unfollow(user)
+    if u is None:
+        flash('Cannot unfollow ' + username + '.')
+        return redirect(url_for('user_profile', user_id=user.id))
+    db.session.add(u)
+    db.session.commit()
+    flash('You have stopped following ' + username + '.', 'danger')
+    return redirect(url_for('user_profile', user_id=user.id))
+
+
+@app.route('/feed')
+@login_required
+def feed():
+    page = request.args.get('page', 1, type=int)
+    posts = current_user.followed_posts().paginate(page=page, per_page=5)
+    return render_template("feed.html", posts=posts)
+
+@app.route('/followers')
+@login_required
+def followers():
+    return render_template("followers.html")
+
+
+@app.route('/following')
+@login_required
+def following():
+    return render_template("following.html")
